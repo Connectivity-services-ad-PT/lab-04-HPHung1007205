@@ -93,10 +93,11 @@ async def create_reading(request: Request, response: Response, _ = Depends(verif
     payload = {
     "reading_id": reading_id,
     "device_id": body["device_id"],
+    "metric": "temperature",
     "temperature": temp_value,
     "timestamp": timestamp_str,
     "accepted": True
-}
+    }
     
     db[reading_id] = payload
     return payload
