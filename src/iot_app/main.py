@@ -100,4 +100,4 @@ async def get_reading_by_id(reading_id: str):
 
 # --- ĐOẠN QUAN TRỌNG ĐỂ KHÔNG BỊ TIMED OUT ---
 if __name__ == "__main__":
-    uvicorn.run("src.iot_app.main:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run(...)

@@ -28,21 +28,43 @@ jobs:
 
       - name: Run Docker container
         run: |
-          # 1. Chạy container
-          docker run -d --name fit4110-iot-lab04 -p 8000:8000 -e API_TOKEN=secret_api_token fit4110/iot-ingestion:lab04
-          
-          # 2. Đợi để log kịp sinh ra
-          sleep 5
-          
-          # 3. Kiểm tra xem container còn sống không
-          if [ "$(docker inspect -f '{{.State.Running}}' fit4110-iot-lab04)" != "true" ]; then
-            echo "Container đã bị crash! Xem logs:"
-            docker logs fit4110-iot-lab04
-            exit 1
-          fi
-          
+          docker run -d --name fit4110-iot-lab04 \
+          -p 8000:8000 \
+          -e API_TOKEN=secret_api_token \
+          fit4110/iot-ingestion:lab04
+
+          sleep 10
+
+          echo "=== Docker PS ==="
+          docker ps -a
+
+          echo "=== Container Logs ==="
+          docker logs fit4110-iot-lab04
+
+          echo "=== Health Check ==="
+          curl -v http://localhost:8000/health || true
+       
+      - name: Debug container
+        run: |
+          echo "=== Docker PS ==="
+          docker ps -a
+
+          echo "=== Container Logs ==="
+          docker logs fit4110-iot-lab04
+
+          echo "=== Curl Health ==="
+          curl -v http://localhost:8000/health
+
       - name: Wait for service health
-        run: npx wait-on http://localhost:8000/health --timeout 60000
+        run: |
+          for i in {1..60}; do
+            curl -f http://localhost:8000/health && exit 0
+            sleep 2
+            done
+
+            echo "Health check failed"
+          docker logs fit4110-iot-lab04
+          exit 1
 
       - name: Run Newman against Docker container
         run: npm run test:local
