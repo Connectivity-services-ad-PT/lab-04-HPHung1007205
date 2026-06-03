@@ -33,9 +33,13 @@ jobs:
             -p 8000:8000 \
             -e API_TOKEN=secret_api_token \
             fit4110/iot-ingestion:lab04
+          # Đợi 5 giây để container có thời gian khởi động
+          sleep 5
+          # In log ra để debug ngay lập tức
+          docker logs fit4110-iot-lab04
 
       - name: Wait for service health
-        run: npx wait-on http://localhost:8000/health --timeout 30000
+        run: npx wait-on http://localhost:8000/health --timeout 60000
 
       - name: Run Newman against Docker container
         run: npm run test:local
