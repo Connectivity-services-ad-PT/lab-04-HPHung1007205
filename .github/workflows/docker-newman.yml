@@ -28,13 +28,19 @@ jobs:
 
       - name: Run Docker container
         run: |
+          # Chạy container và không sử dụng --rm để tránh mất log khi crash
           docker run -d --name fit4110-iot-lab04 -p 8000:8000 -e API_TOKEN=secret_api_token fit4110/iot-ingestion:lab04
-          # Đợi 5 giây để chắc chắn app đã khởi động xong hoặc crash
-          sleep 5
-          # Kiểm tra xem container còn chạy không
-          docker ps
-          # In log ra màn hình
+          
+          # Đợi app "thở" 10 giây
+          sleep 10
+          
+          # Lấy log ngay lập tức và in ra console
+          echo "--- BẮT ĐẦU LOG ---"
           docker logs fit4110-iot-lab04
+          echo "--- KẾT THÚC LOG ---"
+          
+          # Kiểm tra xem cổng 8000 đã mở chưa
+          docker ps
 
       - name: Wait for service health
         run: npx wait-on http://localhost:8000/health --timeout 30000
