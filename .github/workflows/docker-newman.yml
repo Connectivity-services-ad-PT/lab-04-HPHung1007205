@@ -28,22 +28,21 @@ jobs:
 
       - name: Run Docker container
         run: |
-          # Chạy container và không sử dụng --rm để tránh mất log khi crash
+          # 1. Chạy container
           docker run -d --name fit4110-iot-lab04 -p 8000:8000 -e API_TOKEN=secret_api_token fit4110/iot-ingestion:lab04
           
-          # Đợi app "thở" 10 giây
-          sleep 10
+          # 2. Đợi để log kịp sinh ra
+          sleep 5
           
-          # Lấy log ngay lập tức và in ra console
-          echo "--- BẮT ĐẦU LOG ---"
-          docker logs fit4110-iot-lab04
-          echo "--- KẾT THÚC LOG ---"
+          # 3. Kiểm tra xem container còn sống không
+          if [ "$(docker inspect -f '{{.State.Running}}' fit4110-iot-lab04)" != "true" ]; then
+            echo "Container đã bị crash! Xem logs:"
+            docker logs fit4110-iot-lab04
+            exit 1
+          fi
           
-          # Kiểm tra xem cổng 8000 đã mở chưa
-          docker ps
-
       - name: Wait for service health
-        run: npx wait-on http://localhost:8000/health --timeout 30000
+        run: npx wait-on http://localhost:8000/health --timeout 60000
 
       - name: Run Newman against Docker container
         run: npm run test:local
