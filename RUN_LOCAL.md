@@ -1,92 +1,23 @@
-# RUN_LOCAL.md – Hướng dẫn chạy Lab 04
+# Hướng dẫn khởi chạy dự án cục bộ (Local)
 
-Tài liệu này giúp người khác clone repo sạch và chạy lại service trong Docker.
+Dự án này đã được đóng gói bằng Docker. Để chạy dự án, vui lòng thực hiện các bước sau:
 
----
+**Bước 1: Chuẩn bị môi trường**
+Đảm bảo máy tính của bạn đã cài đặt [Docker](https://www.docker.com/products/docker-desktop/).
 
-## 1. Clone repo
+**Bước 2: Build Docker Image**
+Tại thư mục gốc của dự án, mở terminal và chạy lệnh:
+`docker build -t fit4110/iot-ingestion:lab04 .`
 
-```bash
-git clone <repo-url>
-cd FIT4110_lab04_docker_packaging
-```
+**Bước 3: Khởi chạy Container**
+Chạy container từ image vừa build với môi trường giả lập:
+`docker run --rm --name fit4110-iot-lab04 -p 8000:8000 --env-file .env.example fit4110/iot-ingestion:lab04`
 
----
+**Bước 4: Kiểm tra trạng thái (Healthcheck)**
+Mở trình duyệt hoặc terminal và truy cập:
+`curl http://localhost:8000/health`
+(Nếu trả về Status 200 / "OK", ứng dụng đã chạy thành công).
 
-## 2. Cài dependencies cho Newman/Prism/Spectral
-
-```bash
-npm install
-```
-
----
-
-## 3. Build Docker image
-
-```bash
-docker build -t fit4110/iot-ingestion:lab04 .
-```
-
----
-
-## 4. Run container
-
-```bash
-docker run --rm \
-  --name fit4110-iot-lab04 \
-  -p 8000:8000 \
-  --env-file .env.example \
-  fit4110/iot-ingestion:lab04
-```
-
-Mở terminal khác, kiểm tra:
-
-```bash
-curl http://localhost:8000/health
-```
-
-Kết quả mong đợi:
-
-```json
-{
-  "status": "ok",
-  "service": "iot-ingestion",
-  "version": "0.4.0"
-}
-```
-
----
-
-## 5. Chạy Newman test trên container
-
-```bash
-npm run test:local
-```
-
-Report sinh tại:
-
-```text
-reports/newman-lab04-local.xml
-reports/newman-lab04-local.html
-```
-
----
-
-## 6. Dừng container
-
-Nếu không dùng `--rm` hoặc container còn chạy:
-
-```bash
-docker stop fit4110-iot-lab04
-```
-
----
-
-## 7. Lệnh nhanh
-
-```bash
-make build
-make run
-make test-docker
-make stop
-```
+**Bước 5: Chạy tự động kiểm thử (Tuỳ chọn)**
+Mở một terminal mới và chạy Postman/Newman test:
+`npm run test:local`

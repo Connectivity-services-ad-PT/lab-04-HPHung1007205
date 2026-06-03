@@ -1,44 +1,34 @@
-# syntax=docker/dockerfile:1.7
+# Sử dụng base image Python bản slim cho nhẹ
+FROM python:3.11-slim
 
-FROM python:3.11-slim AS builder
+# Cài đặt curl phục vụ cho lệnh HEALTHCHECK
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-WORKDIR /build
-
-RUN python -m venv /opt/venv
-
-COPY requirements.txt .
-
-RUN /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
-    && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
-
-
-FROM python:3.11-slim AS runtime
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PATH="/opt/venv/bin:$PATH"
-ENV APP_HOST=0.0.0.0
-ENV APP_PORT=8000
-ENV AUTH_TOKEN=local-dev-token
-
+# Thiết lập thư mục làm việc trong container
 WORKDIR /app
 
-RUN addgroup --system appgroup \
-    && adduser --system --ingroup appgroup --home /app appuser
+# Tạo non-root user có tên là 'appuser'
+RUN useradd -m appuser
 
-COPY --from=builder /opt/venv /opt/venv
-COPY src/ ./src/
+# Copy file requirements và cài đặt thư viện trước để tận dụng Docker cache
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN chown -R appuser:appgroup /app
+# Copy toàn bộ mã nguồn vào thư mục làm việc
+COPY . .
 
+# Phân quyền sở hữu thư mục /app cho 'appuser'
+RUN chown -R appuser:appuser /app
+
+# Chuyển đổi sang user non-root
 USER appuser
 
+# Khai báo port ứng dụng sẽ chạy
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()" || exit 1
+# Thiết lập Healthcheck gọi vào endpoint /health
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["sh", "-c", "uvicorn iot_app.main:app --app-dir src --host ${APP_HOST} --port ${APP_PORT}"]
+# Lệnh khởi chạy ứng dụng FastAPI bằng Uvicorn
+CMD ["uvicorn", "iot_app.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,21 +1,24 @@
+# Git
 .git
-.github
-.venv
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-.env
-.env.*
-!.env.example
-node_modules
-reports
-*.log
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Node (dùng cho Newman/Postman)
+node_modules/
+package-lock.json
+
+# IDE / OS
+.vscode/
+.idea/
 .DS_Store
-.cache
-.pytest_cache
-dist
-build
-.coverage
-htmlcov
+
+# Reports / Logs
+reports/
+*.log
