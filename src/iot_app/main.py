@@ -36,12 +36,25 @@ def verify_token(request: Request):
 # --- 2. Bộ xử lý lỗi ---
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return JSONResponse(status_code=422, content={"type": "validation_error", "status": 422, "detail": exc.errors()})
-
+    return JSONResponse(
+        status_code=422,
+        content={
+            "type": "validation_error",
+            "status": 422,
+            "detail": exc.errors()
+        }
+    )
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(status_code=exc.status_code, content={"type": "error", "status": exc.status_code, "detail": exc.detail})
-
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "type": "error",
+            "title": "Request Error",
+            "status": exc.status_code,
+            "detail": exc.detail
+        }
+    )
 # --- 3. Endpoints ---
 
 @app.get("/health", status_code=200)
@@ -78,11 +91,12 @@ async def create_reading(request: Request, response: Response, _ = Depends(verif
     timestamp_str = datetime.datetime.utcnow().isoformat()
     
     payload = {
-        "reading_id": reading_id,
-        "device_id": body["device_id"],
-        "temperature": temp_value,
-        "timestamp": timestamp_str
-    }
+    "reading_id": reading_id,
+    "device_id": body["device_id"],
+    "temperature": temp_value,
+    "timestamp": timestamp_str,
+    "accepted": True
+}
     
     db[reading_id] = payload
     return payload
