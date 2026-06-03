@@ -31,4 +31,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
 # Lệnh khởi chạy ứng dụng FastAPI bằng Uvicorn
-CMD ["uvicorn", "iot_app.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "scr.iot_app.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000"]
